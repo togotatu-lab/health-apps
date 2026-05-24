@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="健康">
+<meta name="theme-color" content="#1d6fa5">
+<title>健康アプリ</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='38' fill='%231d6fa5'/><text x='90' y='118' text-anchor='middle' font-family='-apple-system,sans-serif' font-weight='700' font-size='80' fill='white'>健</text></svg>">
+<style>
+  :root {
+    --bg:#f5f7fa; --ink:#111; --ink-mute:#555; --shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#15181c; --ink:#e8e8e8; --ink-mute:#9aa3ad; }
+  }
+  body {
+    margin:0; padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+    background: var(--bg); color: var(--ink);
+    font: 17px/1.5 -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px;
+  }
+  h1 { margin: 0 0 12px; font-size: 22px; text-align: center; }
+  .app-link {
+    display: block; width: 100%; max-width: 340px;
+    padding: 22px 18px; border-radius: 18px; text-decoration: none;
+    color: white; box-shadow: var(--shadow);
+    font-size: 18px; font-weight: 700;
+  }
+  .app-link.kit     { background: #1d6fa5; }
+  .app-link.routine { background: #2e7d32; }
+  .app-link .sub { display: block; font-size: 13px; opacity: .9; font-weight: 400; margin-top: 4px; }
+  .note { font-size: 12px; color: var(--ink-mute); text-align: center; margin-top: 12px; }
+</style>
+</head>
+<body>
+  <h1>健康アプリ</h1>
+  <a class="app-link kit" href="kit.html">
+    KIT トレーニング
+    <span class="sub">月・水・土 のマシンメニュー</span>
+  </a>
+  <a class="app-link routine" href="routine.html">
+    健康ルーチン
+    <span class="sub">毎日／毎週／予定 の管理</span>
+  </a>
+  <p class="note">それぞれを開いて「共有 → ホーム画面に追加」でアイコン化できます</p>
+</body>
+</html>

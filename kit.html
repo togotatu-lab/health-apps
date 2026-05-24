@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KIT">
+<meta name="theme-color" content="#1d6fa5">
+<title>KIT メニュー</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='38' fill='%231d6fa5'/><text x='90' y='118' text-anchor='middle' font-family='-apple-system,sans-serif' font-weight='700' font-size='88' fill='white'>K</text></svg>">
+<style>
+  :root {
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --ink: #111;
+    --ink-mute: #555;
+    --line: #d8dde3;
+    --accent: #1d6fa5;
+    --accent-ink: #ffffff;
+    --done: #1f9d55;
+    --warn: #b45309;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15181c;
+      --card: #21262d;
+      --ink: #e8e8e8;
+      --ink-mute: #9aa3ad;
+      --line: #353b44;
+      --accent: #3a96d1;
+      --done: #5fc77c;
+      --shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+  }
+  *  { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+    font: 17px/1.5 -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif; }
+  body { padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--accent); color: var(--accent-ink);
+    padding: 12px 16px; box-shadow: var(--shadow);
+  }
+  .title-row { display: flex; align-items: baseline; justify-content: space-between; }
+  .title-row h1 { margin: 0; font-size: 20px; }
+  .today { font-size: 13px; opacity: .85; }
+  .day-tabs { display: flex; gap: 6px; margin-top: 10px; }
+  .day-tabs button {
+    flex: 1; padding: 10px 0; font-size: 16px; font-weight: 700;
+    background: rgba(255,255,255,0.15); color: var(--accent-ink);
+    border: 1px solid rgba(255,255,255,0.3); border-radius: 8px;
+    cursor: pointer;
+  }
+  .day-tabs button.active { background: white; color: var(--accent); }
+  .day-tabs button.today-mark::after { content: " ●"; font-size: 12px; color: #ffd33d; }
+
+  .info-bar {
+    padding: 14px 16px; font-size: 14px; color: var(--ink-mute);
+    background: var(--card); border-bottom: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .info-bar .progress { font-weight: 700; color: var(--ink); }
+  .info-bar .day-name { font-weight: 700; color: var(--accent); font-size: 16px; }
+
+  .day-note {
+    padding: 8px 14px; font-size: 13px; line-height: 1.4;
+    background: #fff8e1; color: #5b4400;
+    border-bottom: 1px solid #f0d77a;
+  }
+  @media (prefers-color-scheme: dark) {
+    .day-note { background: #3a2f10; color: #f0d77a; border-bottom-color: #5a4818; }
+  }
+  .day-note:empty { display: none; }
+
+  /* 今日の状況バナー（休養日のとき＆プレビュー時に出す） */
+  .today-status {
+    padding: 10px 14px; font-size: 13px; line-height: 1.4;
+    background: #eef4f9; color: #1d4e6f;
+    border-bottom: 1px solid #cfdfeb;
+  }
+  @media (prefers-color-scheme: dark) {
+    .today-status { background: #1c2a36; color: #9cc8e0; border-bottom-color: #2c3e4f; }
+  }
+  .today-status:empty { display: none; }
+  .today-status .lbl { font-weight: 700; margin-right: 4px; }
+  .preview-flag {
+    display: inline-block; margin-left: 8px; padding: 2px 8px;
+    border-radius: 12px; background: #d2e4f1; color: #1d4e6f;
+    font-size: 11px; font-weight: 700;
+  }
+  @media (prefers-color-scheme: dark) {
+    .preview-flag { background: #2c3e4f; color: #9cc8e0; }
+  }
+
+  main { padding: 14px 12px 80px; }
+  .rest-day {
+    margin: 30px 12px; padding: 24px; background: var(--card);
+    border-radius: 16px; text-align: center; box-shadow: var(--shadow);
+  }
+  .rest-day h2 { margin: 0 0 8px; font-size: 18px; color: var(--accent); }
+  .rest-day p { margin: 6px 0; color: var(--ink-mute); }
+
+  .step {
+    background: var(--card); border-radius: 14px; box-shadow: var(--shadow);
+    margin-bottom: 12px; overflow: hidden;
+    border-left: 5px solid var(--line);
+    transition: border-color .2s;
+  }
+  .step.done { border-left-color: var(--done); }
+  .step.important { border-left-color: var(--warn); }
+  .step.done.important { border-left-color: var(--done); }
+
+  .step-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 14px; cursor: pointer; user-select: none;
+  }
+  .step-head .num {
+    flex: 0 0 36px; height: 36px; border-radius: 50%;
+    background: var(--bg); color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 16px;
+  }
+  .step.done .num { background: var(--done); color: white; }
+  .step-head .body { flex: 1 1 auto; min-width: 0; }
+  .step-head .title { font-weight: 700; font-size: 17px; line-height: 1.3; }
+  .step-head .sub   { font-size: 13px; color: var(--ink-mute); margin-top: 2px; }
+  .step-head .mid   { font-size: 12px; color: var(--accent); font-weight: 700; }
+  .step-head .toggle { font-size: 14px; color: var(--ink-mute); margin-left: 6px; }
+  .step.done .toggle::before { content: "✓"; color: var(--done); font-weight: 700; }
+
+  .step-body { padding: 0 14px 14px 14px; display: none; border-top: 1px dashed var(--line); }
+  .step.open .step-body { display: block; padding-top: 12px; }
+
+  .photo-slot {
+    background: var(--bg); border-radius: 10px; margin: 6px 0 10px;
+    aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center;
+    color: var(--ink-mute); font-size: 13px; overflow: hidden;
+  }
+  .photo-slot img { width: 100%; height: 100%; object-fit: cover; }
+
+  .sets-grid { display: grid; grid-template-columns: auto 1fr 1fr; gap: 6px 8px; align-items: center; margin: 8px 0; }
+  .sets-grid .label { font-size: 13px; color: var(--ink-mute); white-space: nowrap; }
+  .sets-grid input {
+    width: 100%; padding: 8px 10px; font-size: 16px;
+    border: 1px solid var(--line); border-radius: 8px;
+    background: var(--bg); color: var(--ink);
+    text-align: center;
+  }
+  .sets-grid input:focus { outline: 2px solid var(--accent); }
+  .sets-header { font-size: 11px; color: var(--ink-mute); text-align: center; }
+
+  .notes-line {
+    font-size: 13px; color: var(--ink-mute);
+    background: var(--bg); padding: 8px 10px; border-radius: 8px; margin: 6px 0;
+  }
+
+  .action-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .btn {
+    flex: 1 1 auto; min-width: 110px;
+    padding: 12px 14px; font-size: 15px; font-weight: 700; text-align: center;
+    border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    text-decoration: none; cursor: pointer;
+  }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .btn-done    { background: var(--done); color: white; border-color: var(--done); }
+  .btn-ghost   { background: transparent; }
+
+  footer {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    background: var(--card); border-top: 1px solid var(--line);
+    padding: 10px 12px env(safe-area-inset-bottom);
+    display: flex; gap: 8px;
+  }
+
+  .small { font-size: 12px; color: var(--ink-mute); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-row">
+    <h1>KIT トレーニング</h1>
+    <span class="today" id="today-label">—</span>
+  </div>
+  <div class="day-tabs" id="day-tabs">
+    <button data-day="月">月 下半身</button>
+    <button data-day="水">水 上半身</button>
+    <button data-day="土">土 軽め全身</button>
+  </div>
+</header>
+
+<div class="today-status" id="today-status"></div>
+<div class="info-bar">
+  <span class="day-name" id="day-name">—</span>
+  <span class="progress" id="progress">0 / 0</span>
+</div>
+<div class="day-note" id="day-note"></div>
+
+<main id="main"></main>
+
+<footer>
+  <button class="btn btn-ghost" id="btn-reset">今日のチェックをリセット</button>
+</footer>
+
+<script>
+"use strict";
+
+/* ============================================================
+   メニューデータ
+   ※ 更新時はこのオブジェクトを直接編集する
+   ============================================================ */
+const MENUS = {
+  "月": { name: "下半身重視", steps: [
+    { no:"M05", name:"リカンベントバイク",            note:"5分（ウォームアップ）", kind:"cardio" },
+    { no:"M23", name:"ヒップ・フレックス",              note:"5分",                     kind:"stretch" },
+    { no:"M22", name:"アダクター・エクステンション",      note:"5分",                     kind:"stretch" },
+    { no:"M11", name:"レッグプレス",                    note:"準備2＋メイン2",          kind:"strength", important:true },
+    { no:"M08", name:"レッグエクステンション",            note:"準備2＋メイン2（右側+3回）", kind:"strength" },
+    { no:"M10", name:"レッグカール",                    note:"準備2＋メイン2（右側+3回）", kind:"strength" },
+    { no:"M15", name:"ヒップアブダクター・アダクター",     note:"準備2＋メイン2",          kind:"strength" },
+    { no:"M16", name:"バックエクステンション",            note:"準備1＋メイン2",          kind:"strength", prep:1 },
+    { no:"M05", name:"リカンベントバイク",            note:"15分（軽負荷）",          kind:"cardio" },
+    { no:"M23", name:"ヒップ・フレックス（クールダウン）",   note:"3分",                     kind:"stretch" },
+  ]},
+  "水": { name: "上半身重視＋体幹", steps: [
+    { no:"M05", name:"リカンベントバイク",            note:"5分",                     kind:"cardio" },
+    { no:"M21", name:"ショルダー・エレベイション",        note:"5分",                     kind:"stretch" },
+    { no:"M20", name:"チェスト・エクステンション",        note:"5分",                     kind:"stretch" },
+    { no:"M09", name:"チェストプレス",                  note:"準備2＋メイン2（ベンチプレス代替）", kind:"strength", important:true },
+    { no:"M12", name:"ラットプルダウン・ロー",            note:"準備2＋メイン2",          kind:"strength" },
+    { no:"M13", name:"ショルダープレス",                note:"準備2＋メイン2（ごく軽め）", kind:"strength" },
+    { no:"M14", name:"ペックフライ",                    note:"準備1＋メイン2",          kind:"strength", prep:1 },
+    { no:"M07", name:"トーソローテーション",            note:"準備1＋メイン2（左右各）",   kind:"strength", prep:1 },
+    { no:"M02", name:"アークトレーナー",                note:"15分（軽負荷）",          kind:"cardio" },
+    { no:"M20", name:"チェスト・エクステンション（クールダウン）", note:"3分",            kind:"stretch" },
+  ]},
+  "土": { name: "軽め全身・回復寄り", steps: [
+    { no:"M05", name:"リカンベントバイク",            note:"5分",                     kind:"cardio" },
+    { no:"M20", name:"チェスト・エクステンション",        note:"5分",                     kind:"stretch" },
+    { no:"M21", name:"ショルダー・エレベイション",        note:"5分",                     kind:"stretch" },
+    { no:"M22", name:"アダクター・エクステンション",      note:"5分",                     kind:"stretch" },
+    { no:"M23", name:"ヒップ・フレックス",              note:"5分",                     kind:"stretch" },
+    { no:"M11", name:"レッグプレス",                    note:"準備1＋メイン1（軽め）",  kind:"strength", prep:1, main:1 },
+    { no:"M07", name:"トーソローテーション",            note:"軽め × 左右各8回 × 1セット", kind:"strength", prep:0, main:1 },
+    { no:"M16", name:"バックエクステンション",            note:"軽め × 8回 × 1セット",    kind:"strength", prep:0, main:1 },
+    { no:"M05", name:"リカンベントバイク",            note:"20分（音楽聴きながら）",  kind:"cardio" },
+    { no:"M23", name:"ヒップ・フレックス",              note:"5分",                     kind:"stretch" },
+  ]},
+};
+
+/* マシン番号→YouTubeリンク（参考動画） */
+const VIDEOS = {
+  M02:"https://www.youtube.com/watch?v=_Bi0Pw70fZo",
+  M03:"https://www.youtube.com/watch?v=ONEhZ8iJOmU",
+  M04:"https://www.youtube.com/watch?v=QBq24D7hOFY",
+  M05:"https://www.youtube.com/watch?v=HNY-_xSi-jc",
+  M07:"https://www.youtube.com/watch?v=ivxVttZFMk8",
+  M08:"https://www.youtube.com/watch?v=U_iT-14jFmU",
+  M09:"https://www.youtube.com/watch?v=O0K65G6gqMg",
+  M10:"https://www.youtube.com/watch?v=8JawD9gfqUw",
+  M11:"https://www.youtube.com/watch?v=_UAjbJTiuhI",
+  M12:"https://www.youtube.com/watch?v=mG1T29lwrNI",
+  M13:"https://www.youtube.com/watch?v=95tXaIWOINI",
+  M14:"https://www.youtube.com/watch?v=n8mXBgkQSxw",
+  M15:"https://www.youtube.com/watch?v=nCXGH6JVVJQ",
+  M16:"https://www.youtube.com/watch?v=GrdynoJclL0",
+  M17:"https://www.youtube.com/watch?v=zoaRMaODpik",
+  M18:"https://www.youtube.com/watch?v=81c4YeMnX8A",
+  M20:"https://www.youtube.com/watch?v=hQp7bPoEGAI",
+  M21:"https://www.youtube.com/watch?v=0ybebYGr4dU",
+  M22:"https://www.youtube.com/watch?v=7NdAssT2BZU",
+  M23:"https://www.youtube.com/shorts/19rL6ITgWvw",
+  M24:"https://www.youtube.com/watch?v=06M_jOzesRA",
+};
+
+/* 写真ファイルの所在（同階層 machine_photos/ に Mxx.jpg 等を置けば表示） */
+const PHOTO_DIR = "machine_photos";
+
+/* ============================================================ */
+
+const TRAINING_DAYS = ["月","水","土"];
+const DOW_NAMES = ["日","月","火","水","木","金","土"];
+const REST_NOTES = {
+  "火": "今日は休養日。散歩20分でリズム歩行（朝の大振幅ルーチンを忘れずに）",
+  "木": "ピアノ自主練 20分＋創作活動の日",
+  "金": "菊野病院 PT 15:10〜16:30",
+  "日": "回復日。20分のフルルーチン＋入浴ST＋骨盤底筋",
+};
+
+/* 訓練日でも上部に小さく出したいリマインド */
+const DAY_NOTES = {
+  "月": "🎹 今夜 19:00〜19:40 ピアノレッスン（先生）",
+};
+
+/* ローカルストレージ ----------------------------------------- */
+const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+};
+const todayDow = () => DOW_NAMES[new Date().getDay()];
+const CHECK_KEY = `kit-checked-${todayStr()}`;
+const getChecks = () => { try { return JSON.parse(localStorage.getItem(CHECK_KEY)||"{}"); } catch { return {}; } };
+const setChecks = (obj) => localStorage.setItem(CHECK_KEY, JSON.stringify(obj));
+const fieldKey = (no, idx, field) => `kit-${no}-${idx}-${field}`;
+const getField = (no, idx, field) => localStorage.getItem(fieldKey(no, idx, field)) || "";
+const setField = (no, idx, field, val) => {
+  if (val) localStorage.setItem(fieldKey(no, idx, field), val);
+  else     localStorage.removeItem(fieldKey(no, idx, field));
+};
+
+/* 旧日付のチェックを掃除（直近7日以外） */
+function pruneOldChecks() {
+  const keep = new Set();
+  const d = new Date();
+  for (let i = 0; i < 7; i++) {
+    const dd = new Date(d); dd.setDate(d.getDate()-i);
+    keep.add(`kit-checked-${dd.getFullYear()}-${String(dd.getMonth()+1).padStart(2,"0")}-${String(dd.getDate()).padStart(2,"0")}`);
+  }
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith("kit-checked-") && !keep.has(k)) localStorage.removeItem(k);
+  }
+}
+pruneOldChecks();
+
+/* ============================================================ */
+
+let currentDay = null;
+
+function setActiveDay(day) {
+  currentDay = day;
+  document.querySelectorAll("#day-tabs button").forEach(b => {
+    b.classList.toggle("active", b.dataset.day === day);
+  });
+  render();
+}
+
+function buildSetsGrid(step, idx) {
+  const prepCount = step.prep ?? 2;
+  const mainCount = step.main ?? 2;
+  const rows = [];
+  for (let i = 1; i <= prepCount; i++) rows.push({label:`準備${i}`, key:`prep${i}`});
+  for (let i = 1; i <= mainCount; i++) rows.push({label:`メイン${i}`, key:`main${i}`});
+  if (rows.length === 0) return "";
+
+  let html = `<div class="sets-grid">`;
+  html += `<div></div><div class="sets-header">重量 (kg)</div><div class="sets-header">回数</div>`;
+  for (const r of rows) {
+    const wVal = getField(step.no, idx, r.key + "-w");
+    const cVal = getField(step.no, idx, r.key + "-c");
+    html += `<div class="label">${r.label}</div>`;
+    html += `<input type="number" inputmode="decimal" min="0" step="0.5" value="${wVal}" data-no="${step.no}" data-idx="${idx}" data-field="${r.key}-w" placeholder="kg">`;
+    html += `<input type="number" inputmode="numeric" min="0" step="1" value="${cVal}" data-no="${step.no}" data-idx="${idx}" data-field="${r.key}-c" placeholder="回">`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function escapeAttr(s) { return s.replace(/&/g,"&amp;").replace(/"/g,"&quot;"); }
+
+function render() {
+  const main = document.getElementById("main");
+  const dayName = document.getElementById("day-name");
+  const progress = document.getElementById("progress");
+  const dayNote = document.getElementById("day-note");
+
+  dayNote.textContent = DAY_NOTES[currentDay] || "";
+
+  if (!MENUS[currentDay]) {
+    main.innerHTML = `<div class="rest-day">
+      <h2>${currentDay}曜は休養日</h2>
+      <p>${REST_NOTES[currentDay] || ""}</p>
+      <p class="small">上のタブで 月／水／土 のメニューを表示できます</p>
+    </div>`;
+    dayName.textContent = `${currentDay}曜日`;
+    progress.textContent = "";
+    return;
+  }
+
+  const dow = todayDow();
+  const isToday = currentDay === dow;
+  const menu = MENUS[currentDay];
+  const checks = getChecks();
+  dayName.innerHTML = `${currentDay}曜：${menu.name}` +
+    (isToday ? "" : `<span class="preview-flag">プレビュー</span>`);
+
+  const total = menu.steps.length;
+  let doneCount = 0;
+  let html = "";
+  menu.steps.forEach((step, idx) => {
+    const checkKey = `${currentDay}-${idx}`;
+    const isDone = !!checks[checkKey];
+    if (isDone) doneCount++;
+    const videoUrl = VIDEOS[step.no];
+    const hasInputs = step.kind === "strength" && (step.prep ?? 2) + (step.main ?? 2) > 0;
+
+    html += `<div class="step ${isDone?"done":""} ${step.important?"important":""}" data-idx="${idx}">`;
+    html += `  <div class="step-head" data-toggle>`;
+    html += `    <div class="num">${idx+1}</div>`;
+    html += `    <div class="body">`;
+    html += `      <div class="title">${step.no} ${step.name}${step.important?' <span class="mid">★最重要</span>':''}</div>`;
+    html += `      <div class="sub">${step.note}</div>`;
+    html += `    </div>`;
+    html += `    <div class="toggle">▾</div>`;
+    html += `  </div>`;
+    html += `  <div class="step-body">`;
+    html += `    <div class="photo-slot" data-photo="${step.no}">`;
+    html += `      <span>📷 写真未設定（${PHOTO_DIR}/${step.no}.jpg を置くと表示）</span>`;
+    html += `    </div>`;
+    if (hasInputs) html += buildSetsGrid(step, idx);
+    html += `    <div class="action-row">`;
+    if (videoUrl) html += `<a class="btn" href="${escapeAttr(videoUrl)}" target="_blank" rel="noopener">▶ 動画</a>`;
+    html += `      <button class="btn ${isDone?"btn-ghost":"btn-done"}" data-check="${checkKey}">${isDone?"✓ 完了済み（取消）":"このマシンを完了"}</button>`;
+    html += `    </div>`;
+    html += `  </div>`;
+    html += `</div>`;
+  });
+  main.innerHTML = html;
+  progress.textContent = `${doneCount} / ${total}`;
+
+  // 写真の存在チェック（同階層に machine_photos/Mxx.{jpg,png,webp} があれば差し替え）
+  document.querySelectorAll(".photo-slot").forEach(slot => {
+    const no = slot.dataset.photo;
+    const exts = ["jpg","jpeg","png","webp"];
+    let tried = 0;
+    const tryNext = () => {
+      if (tried >= exts.length) return;
+      const img = new Image();
+      const src = `${PHOTO_DIR}/${no}.${exts[tried++]}`;
+      img.onload = () => { slot.innerHTML = ""; slot.appendChild(img); };
+      img.onerror = tryNext;
+      img.src = src;
+    };
+    tryNext();
+  });
+}
+
+/* ============================================================ */
+/* イベント                                                     */
+/* ============================================================ */
+
+document.getElementById("day-tabs").addEventListener("click", e => {
+  const b = e.target.closest("button[data-day]");
+  if (b) setActiveDay(b.dataset.day);
+});
+
+document.getElementById("main").addEventListener("click", e => {
+  if (e.target.closest("[data-toggle]")) {
+    const step = e.target.closest(".step");
+    step.classList.toggle("open");
+    return;
+  }
+  const checkBtn = e.target.closest("[data-check]");
+  if (checkBtn) {
+    e.stopPropagation();
+    const key = checkBtn.dataset.check;
+    const checks = getChecks();
+    checks[key] = !checks[key];
+    setChecks(checks);
+    render();
+  }
+});
+
+document.getElementById("main").addEventListener("input", e => {
+  const t = e.target;
+  if (t.tagName === "INPUT" && t.dataset.no) {
+    setField(t.dataset.no, t.dataset.idx, t.dataset.field, t.value);
+  }
+});
+
+document.getElementById("btn-reset").addEventListener("click", () => {
+  if (!confirm("今日のチェック状態をすべて未完了に戻します。よろしいですか？\n（重量・回数の入力は残ります）")) return;
+  localStorage.removeItem(CHECK_KEY);
+  render();
+});
+
+/* ============================================================ */
+/* 初期化                                                       */
+/* ============================================================ */
+
+(function init() {
+  const dow = todayDow();
+  document.getElementById("today-label").textContent =
+    `今日 ${new Date().getMonth()+1}/${new Date().getDate()} (${dow})`;
+
+  // 今日マーク
+  document.querySelectorAll("#day-tabs button").forEach(b => {
+    if (b.dataset.day === dow) b.classList.add("today-mark");
+  });
+
+  // 今日が訓練日でない場合は、休養日ステータスを常時バナーで提示
+  const status = document.getElementById("today-status");
+  if (TRAINING_DAYS.includes(dow)) {
+    status.innerHTML = `<span class="lbl">今日 (${dow})：</span>${MENUS[dow].name}の日（下のメニューが本日分）`;
+  } else {
+    const note = REST_NOTES[dow] || "休養日";
+    status.innerHTML = `<span class="lbl">今日 (${dow}) は休養日：</span>${note}` +
+      `<div style="margin-top:4px;font-size:12px;opacity:.85;">下のタブで 月／水／土 のメニューをいつでも閲覧・計画できます</div>`;
+  }
+
+  // 今日がメニュー曜日ならその曜日、そうでなければ最も近い次のメニュー曜日
+  let initial;
+  if (TRAINING_DAYS.includes(dow)) {
+    initial = dow;
+  } else {
+    // 翌日以降で最も近いメニュー曜日
+    const idxToday = DOW_NAMES.indexOf(dow);
+    for (let i = 1; i <= 7; i++) {
+      const cand = DOW_NAMES[(idxToday + i) % 7];
+      if (TRAINING_DAYS.includes(cand)) { initial = cand; break; }
+    }
+  }
+  setActiveDay(initial);
+})();
+</script>
+</body>
+</html>

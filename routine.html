@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="健康ルーチン">
+<meta name="theme-color" content="#2e7d32">
+<title>健康ルーチン</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='38' fill='%232e7d32'/><text x='90' y='118' text-anchor='middle' font-family='-apple-system,sans-serif' font-weight='700' font-size='80' fill='white'>健</text></svg>">
+<style>
+  :root {
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --ink: #111;
+    --ink-mute: #555;
+    --line: #d8dde3;
+    --accent: #2e7d32;
+    --accent-ink: #ffffff;
+    --done: #1f9d55;
+    --warn: #b45309;
+    --danger: #b91c1c;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15181c;
+      --card: #21262d;
+      --ink: #e8e8e8;
+      --ink-mute: #9aa3ad;
+      --line: #353b44;
+      --accent: #4caf50;
+      --done: #5fc77c;
+      --shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+  }
+  *  { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+    font: 17px/1.5 -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif; }
+  body { padding: env(safe-area-inset-top) 0 80px; }
+
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--accent); color: var(--accent-ink);
+    padding: 12px 16px; box-shadow: var(--shadow);
+  }
+  .title-row { display: flex; align-items: baseline; justify-content: space-between; }
+  .title-row h1 { margin: 0; font-size: 20px; }
+  .today { font-size: 13px; opacity: .9; }
+  .tabs { display: flex; gap: 6px; margin-top: 10px; }
+  .tabs button {
+    flex: 1; padding: 10px 0; font-size: 15px; font-weight: 700;
+    background: rgba(255,255,255,0.15); color: var(--accent-ink);
+    border: 1px solid rgba(255,255,255,0.3); border-radius: 8px;
+    cursor: pointer;
+  }
+  .tabs button.active { background: white; color: var(--accent); }
+
+  main { padding: 14px 12px; }
+  section { display: none; }
+  section.active { display: block; }
+  h2.sec-h { font-size: 15px; color: var(--ink-mute); margin: 14px 4px 8px; font-weight: 700; }
+
+  .card {
+    background: var(--card); border-radius: 14px; box-shadow: var(--shadow);
+    padding: 12px 14px; margin-bottom: 10px;
+    border-left: 5px solid var(--line);
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .card.done { border-left-color: var(--done); }
+  .card.warn { border-left-color: var(--warn); }
+  .card .body { flex: 1 1 auto; min-width: 0; }
+  .card .name { font-weight: 700; font-size: 17px; line-height: 1.3; }
+  .card .meta { font-size: 13px; color: var(--ink-mute); margin-top: 3px; }
+  .card .meta .sep { margin: 0 6px; opacity: .5; }
+  .card .notes { font-size: 13px; color: var(--ink-mute); margin-top: 4px; font-style: italic; }
+  .card .actions { display: flex; flex-direction: column; gap: 6px; }
+  .card .check-btn {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--bg); border: 2px solid var(--line); color: var(--ink);
+    font-size: 24px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .card.done .check-btn { background: var(--done); color: white; border-color: var(--done); }
+
+  .empty {
+    text-align: center; padding: 30px 16px; color: var(--ink-mute);
+    background: var(--card); border-radius: 14px; box-shadow: var(--shadow);
+  }
+  .empty h3 { margin: 0 0 6px; color: var(--ink); font-size: 16px; }
+
+  .upcoming-item {
+    background: var(--card); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+    display: flex; gap: 10px; align-items: center; box-shadow: var(--shadow);
+  }
+  .upcoming-item .date {
+    flex: 0 0 60px; text-align: center; padding: 6px 0; border-radius: 8px;
+    background: var(--accent); color: white;
+  }
+  .upcoming-item .date .d { font-size: 18px; font-weight: 800; line-height: 1; }
+  .upcoming-item .date .dow { font-size: 11px; opacity: .9; }
+  .upcoming-item .name { font-weight: 700; }
+  .upcoming-item .meta { font-size: 12px; color: var(--ink-mute); }
+
+  /* 管理タブ */
+  .mng-item {
+    background: var(--card); border-radius: 12px; box-shadow: var(--shadow);
+    padding: 12px 14px; margin-bottom: 10px;
+  }
+  .mng-item .mng-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .mng-item .mng-name { font-weight: 700; font-size: 16px; }
+  .mng-item .mng-meta { font-size: 12px; color: var(--ink-mute); margin-top: 2px; }
+  .mng-item .mng-acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+
+  .btn {
+    padding: 9px 14px; font-size: 14px; font-weight: 700;
+    border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .btn-danger  { background: var(--danger); color: white; border-color: var(--danger); }
+  .btn-ghost   { background: transparent; }
+  .btn-block   { display: block; width: 100%; padding: 14px; font-size: 16px; }
+
+  .dates-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .date-chip {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 20px;
+    padding: 5px 10px; font-size: 13px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .date-chip button {
+    background: none; border: none; padding: 0; color: var(--danger); cursor: pointer;
+    font-size: 16px; line-height: 1;
+  }
+  .date-chip.past { opacity: .5; }
+
+  /* モーダル */
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: none; align-items: flex-end; justify-content: center; z-index: 100;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--card); width: 100%; max-width: 480px;
+    border-radius: 16px 16px 0 0; padding: 18px 16px env(safe-area-inset-bottom);
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal h2 { margin: 0 0 14px; font-size: 18px; }
+  .modal label { display: block; font-size: 13px; color: var(--ink-mute); margin-bottom: 4px; margin-top: 12px; }
+  .modal input[type=text], .modal input[type=date], .modal textarea, .modal select {
+    width: 100%; padding: 10px 12px; font-size: 16px;
+    border: 1px solid var(--line); border-radius: 8px;
+    background: var(--bg); color: var(--ink);
+  }
+  .modal textarea { min-height: 60px; resize: vertical; }
+  .modal .freq-fields { background: var(--bg); padding: 10px; border-radius: 10px; margin-top: 8px; }
+  .modal .dow-row { display: flex; gap: 4px; margin-top: 8px; }
+  .modal .dow-row label {
+    flex: 1; text-align: center; padding: 8px 0; margin: 0;
+    border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
+    background: var(--card); color: var(--ink);
+  }
+  .modal .dow-row input { display: none; }
+  .modal .dow-row input:checked + label { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .modal .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+  .modal .modal-actions .btn { flex: 1; padding: 12px; }
+
+  /* フッター */
+  footer-fab {
+    position: fixed; right: 16px; bottom: calc(20px + env(safe-area-inset-bottom));
+    width: 60px; height: 60px; border-radius: 50%;
+    background: var(--accent); color: white; box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-weight: 300; cursor: pointer; z-index: 5;
+    border: none;
+  }
+  /* `footer-fab` は擬似要素にできないので button にクラス付与 */
+  .fab {
+    position: fixed; right: 16px; bottom: calc(20px + env(safe-area-inset-bottom));
+    width: 60px; height: 60px; border-radius: 50%;
+    background: var(--accent); color: white; box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; font-weight: 300; cursor: pointer; z-index: 5;
+    border: none;
+  }
+
+  .small { font-size: 12px; color: var(--ink-mute); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-row">
+    <h1>健康ルーチン</h1>
+    <span class="today" id="today-label">—</span>
+  </div>
+  <div class="tabs" id="tabs">
+    <button data-tab="today" class="active">今日</button>
+    <button data-tab="upcoming">予定</button>
+    <button data-tab="manage">メニュー</button>
+  </div>
+</header>
+
+<main>
+  <section id="sec-today" class="active">
+    <h2 class="sec-h">今日やること</h2>
+    <div id="today-list"></div>
+  </section>
+
+  <section id="sec-upcoming">
+    <h2 class="sec-h">今後14日の予定</h2>
+    <div id="upcoming-list"></div>
+  </section>
+
+  <section id="sec-manage">
+    <h2 class="sec-h">登録メニュー</h2>
+    <div id="manage-list"></div>
+    <button class="btn btn-primary btn-block" id="btn-add-new" style="margin-top:14px;">＋ 新しいメニューを追加</button>
+    <p class="small" style="margin-top: 18px; text-align:center;">
+      KIT トレーニングは <a href="00_KIT_メニューアプリ.html" style="color:var(--accent);">KITアプリ</a> 側で管理
+    </p>
+  </section>
+</main>
+
+<button class="fab" id="fab-add" title="新規追加">＋</button>
+
+<!-- メニュー編集モーダル -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal" id="modal">
+    <h2 id="modal-title">新しいメニュー</h2>
+
+    <label>名前 <span class="small">（例：ラジオ体操、ピアノレッスン）</span></label>
+    <input type="text" id="f-name" placeholder="メニュー名">
+
+    <label>時間帯 <span class="small">（例：朝 6:30、19:00〜19:40）</span></label>
+    <input type="text" id="f-time" placeholder="任意">
+
+    <label>場所</label>
+    <input type="text" id="f-place" placeholder="任意（例：菊野病院、自宅）">
+
+    <label>メモ</label>
+    <textarea id="f-notes" placeholder="任意"></textarea>
+
+    <label>頻度</label>
+    <select id="f-freq-type">
+      <option value="daily">毎日</option>
+      <option value="weekly">毎週（曜日を選ぶ）</option>
+      <option value="dates">特定日（カレンダーで日付を追加）</option>
+    </select>
+
+    <div class="freq-fields" id="freq-weekly" style="display:none;">
+      <div class="small">該当する曜日を選択</div>
+      <div class="dow-row">
+        <input type="checkbox" id="dow-月" value="月"><label for="dow-月">月</label>
+        <input type="checkbox" id="dow-火" value="火"><label for="dow-火">火</label>
+        <input type="checkbox" id="dow-水" value="水"><label for="dow-水">水</label>
+        <input type="checkbox" id="dow-木" value="木"><label for="dow-木">木</label>
+        <input type="checkbox" id="dow-金" value="金"><label for="dow-金">金</label>
+        <input type="checkbox" id="dow-土" value="土"><label for="dow-土">土</label>
+        <input type="checkbox" id="dow-日" value="日"><label for="dow-日">日</label>
+      </div>
+    </div>
+
+    <div class="freq-fields" id="freq-dates" style="display:none;">
+      <div class="small">日付を追加・削除</div>
+      <div style="display:flex; gap:6px; margin-top:8px;">
+        <input type="date" id="f-date-input" style="flex:1;">
+        <button class="btn" id="btn-add-date">追加</button>
+      </div>
+      <div class="dates-list" id="dates-list"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="btn-cancel">キャンセル</button>
+      <button class="btn btn-danger" id="btn-delete" style="display:none;">削除</button>
+      <button class="btn btn-primary" id="btn-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   ストレージ
+   ============================================================ */
+const STORAGE_KEY = "health-routine-v1";
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+const DOW_NAMES = ["日","月","火","水","木","金","土"];
+function dowOf(dateStr) {
+  // dateStr: "2026-05-24" → 曜日文字
+  const [y,m,d] = dateStr.split("-").map(Number);
+  return DOW_NAMES[new Date(y, m-1, d).getDay()];
+}
+function formatDate(dateStr) {
+  const [y,m,d] = dateStr.split("-").map(Number);
+  return `${m}/${d}`;
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
+}
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+/* 既定の登録項目（初回起動時のみシード） */
+const DEFAULTS = {
+  version: 1,
+  activities: [
+    { id:"d_radio",   name:"ラジオ体操",     time:"朝 6:30", place:"自宅", notes:"第1+第2",   freq:{type:"daily"} },
+    { id:"d_stretch", name:"朝ストレッチ",   time:"朝",     place:"自宅", notes:"大振幅ルーチン 10分", freq:{type:"daily"} },
+    { id:"d_ball",    name:"ボール運動",     time:"朝",     place:"自宅", notes:"バランス練習",  freq:{type:"daily"} },
+    { id:"w_pt",      name:"菊野病院 リハビリ", time:"15:10〜16:30", place:"菊野病院", notes:"PT", freq:{type:"weekly", days:["金"]} },
+    { id:"s_piano",   name:"ピアノレッスン（先生）", time:"19:00〜19:40", place:"", notes:"月3回ペース。日付は先生から告知されたものを追加", freq:{type:"dates", dates:[]} },
+    { id:"s_seikotsu",name:"すんくじら整骨院", time:"9:00〜10:00", place:"すんくじら整骨院", notes:"月1回。予約日を追加", freq:{type:"dates", dates:[]} },
+  ],
+  completions: {}, // {"YYYY-MM-DD": ["id1", "id2"]}
+};
+
+let state = load() || DEFAULTS;
+// 古いデータからのマイグレーション余地
+if (!state.completions) state.completions = {};
+
+/* 7日より古い完了履歴は削減（容量節約） */
+(function prune(){
+  const today = new Date();
+  const keep = new Set();
+  for (let i = 0; i < 90; i++) {  // 過去90日は残す（月3回などの履歴確認のため）
+    const d = new Date(today); d.setDate(today.getDate()-i);
+    keep.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);
+  }
+  for (const k of Object.keys(state.completions)) {
+    if (!keep.has(k)) delete state.completions[k];
+  }
+  save();
+})();
+
+/* ============================================================
+   フィルタリング
+   ============================================================ */
+function isApplicableToday(act, dateStr) {
+  const f = act.freq || {type:"daily"};
+  if (f.type === "daily") return true;
+  if (f.type === "weekly") return (f.days||[]).includes(dowOf(dateStr));
+  if (f.type === "dates")  return (f.dates||[]).includes(dateStr);
+  return false;
+}
+function isDone(act, dateStr) {
+  return (state.completions[dateStr] || []).includes(act.id);
+}
+function toggleDone(act, dateStr) {
+  if (!state.completions[dateStr]) state.completions[dateStr] = [];
+  const arr = state.completions[dateStr];
+  const i = arr.indexOf(act.id);
+  if (i >= 0) arr.splice(i,1); else arr.push(act.id);
+  if (arr.length === 0) delete state.completions[dateStr];
+  save();
+}
+
+/* ============================================================
+   レンダリング：今日
+   ============================================================ */
+function renderToday() {
+  const today = todayStr();
+  const list = document.getElementById("today-list");
+  const items = state.activities.filter(a => isApplicableToday(a, today));
+  if (items.length === 0) {
+    list.innerHTML = `<div class="empty"><h3>今日は登録された予定はありません</h3>
+      <p>「メニュー」タブで予定を追加できます</p></div>`;
+    return;
+  }
+  list.innerHTML = items.map(a => {
+    const done = isDone(a, today);
+    const meta = [a.time, a.place].filter(Boolean).join(" ・ ");
+    return `<div class="card ${done?"done":""}" data-id="${a.id}">
+      <div class="body">
+        <div class="name">${escapeHtml(a.name)}</div>
+        ${meta ? `<div class="meta">${escapeHtml(meta)}</div>` : ""}
+        ${a.notes ? `<div class="notes">${escapeHtml(a.notes)}</div>` : ""}
+      </div>
+      <div class="actions">
+        <button class="check-btn" data-toggle="${a.id}">${done?"✓":"○"}</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* ============================================================
+   レンダリング：今後14日
+   ============================================================ */
+function renderUpcoming() {
+  const list = document.getElementById("upcoming-list");
+  const today = new Date();
+  const rows = [];
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(today); d.setDate(today.getDate()+i);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    const items = state.activities.filter(a => {
+      if (!a.freq) return false;
+      // 「予定」タブは weekly と dates 型だけ（daily は省略）
+      if (a.freq.type === "daily") return false;
+      return isApplicableToday(a, dateStr);
+    });
+    for (const a of items) {
+      const meta = [a.time, a.place].filter(Boolean).join(" ・ ");
+      rows.push(`<div class="upcoming-item">
+        <div class="date"><div class="d">${d.getDate()}</div><div class="dow">${DOW_NAMES[d.getDay()]}</div></div>
+        <div class="body">
+          <div class="name">${escapeHtml(a.name)}</div>
+          <div class="meta">${escapeHtml(meta || "")}</div>
+        </div>
+      </div>`);
+    }
+  }
+  list.innerHTML = rows.length ? rows.join("") :
+    `<div class="empty"><h3>今後14日に予定はありません</h3>
+      <p>「メニュー」タブから特定日の予定や毎週の予定を追加できます</p></div>`;
+}
+
+/* ============================================================
+   レンダリング：メニュー管理
+   ============================================================ */
+function freqLabel(f) {
+  if (!f) return "毎日";
+  if (f.type === "daily")  return "毎日";
+  if (f.type === "weekly") return "毎週 " + (f.days||[]).join("・");
+  if (f.type === "dates")  {
+    const today = todayStr();
+    const future = (f.dates||[]).filter(d => d >= today).sort();
+    if (future.length === 0) return "特定日（未登録）";
+    return "特定日 次は " + formatDate(future[0]);
+  }
+  return "?";
+}
+function renderManage() {
+  const list = document.getElementById("manage-list");
+  list.innerHTML = state.activities.map(a => {
+    const meta = [a.time, a.place].filter(Boolean).join(" ・ ");
+    return `<div class="mng-item">
+      <div class="mng-head">
+        <div class="body">
+          <div class="mng-name">${escapeHtml(a.name)}</div>
+          <div class="mng-meta">${escapeHtml(freqLabel(a.freq))}${meta ? " / " + escapeHtml(meta) : ""}</div>
+        </div>
+      </div>
+      <div class="mng-acts">
+        <button class="btn" data-edit="${a.id}">編集</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* ============================================================
+   モーダル：追加/編集
+   ============================================================ */
+let editingId = null;
+let editingDates = [];
+
+function openModal(act) {
+  editingId = act ? act.id : null;
+  editingDates = act && act.freq && act.freq.type === "dates" ? [...(act.freq.dates||[])] : [];
+
+  document.getElementById("modal-title").textContent = act ? "メニューを編集" : "新しいメニュー";
+  document.getElementById("f-name").value = act ? act.name : "";
+  document.getElementById("f-time").value = act ? (act.time||"") : "";
+  document.getElementById("f-place").value = act ? (act.place||"") : "";
+  document.getElementById("f-notes").value = act ? (act.notes||"") : "";
+
+  const freqType = act && act.freq ? act.freq.type : "daily";
+  document.getElementById("f-freq-type").value = freqType;
+  ["月","火","水","木","金","土","日"].forEach(d => {
+    document.getElementById(`dow-${d}`).checked =
+      act && act.freq && act.freq.type === "weekly" && (act.freq.days||[]).includes(d);
+  });
+
+  document.getElementById("btn-delete").style.display = act ? "" : "none";
+  syncFreqFields();
+  renderDatesList();
+  document.getElementById("modal-bg").classList.add("open");
+}
+function closeModal() {
+  document.getElementById("modal-bg").classList.remove("open");
+  editingId = null;
+  editingDates = [];
+}
+function syncFreqFields() {
+  const t = document.getElementById("f-freq-type").value;
+  document.getElementById("freq-weekly").style.display = (t === "weekly") ? "" : "none";
+  document.getElementById("freq-dates").style.display  = (t === "dates")  ? "" : "none";
+}
+function renderDatesList() {
+  const today = todayStr();
+  const sorted = [...editingDates].sort();
+  document.getElementById("dates-list").innerHTML = sorted.map(d =>
+    `<span class="date-chip ${d < today ? "past":""}">
+      ${formatDate(d)} (${dowOf(d)})
+      <button data-remove-date="${d}">×</button>
+     </span>`
+  ).join("");
+}
+function saveFromForm() {
+  const name = document.getElementById("f-name").value.trim();
+  if (!name) { alert("名前を入力してください"); return; }
+  const time  = document.getElementById("f-time").value.trim();
+  const place = document.getElementById("f-place").value.trim();
+  const notes = document.getElementById("f-notes").value.trim();
+  const ftype = document.getElementById("f-freq-type").value;
+  let freq;
+  if (ftype === "daily")  freq = { type:"daily" };
+  if (ftype === "weekly") {
+    const days = ["月","火","水","木","金","土","日"].filter(d => document.getElementById(`dow-${d}`).checked);
+    if (days.length === 0) { alert("曜日を1つ以上選んでください"); return; }
+    freq = { type:"weekly", days };
+  }
+  if (ftype === "dates") {
+    freq = { type:"dates", dates: [...editingDates].sort() };
+  }
+  if (editingId) {
+    const a = state.activities.find(x => x.id === editingId);
+    if (a) { Object.assign(a, { name, time, place, notes, freq }); }
+  } else {
+    state.activities.push({ id: "u_" + Date.now().toString(36), name, time, place, notes, freq });
+  }
+  save();
+  closeModal();
+  renderAll();
+}
+function deleteCurrent() {
+  if (!editingId) return;
+  if (!confirm("このメニューを削除します。よろしいですか？\n（過去の完了履歴は残ります）")) return;
+  state.activities = state.activities.filter(a => a.id !== editingId);
+  save();
+  closeModal();
+  renderAll();
+}
+
+/* ============================================================
+   イベント
+   ============================================================ */
+document.getElementById("tabs").addEventListener("click", e => {
+  const b = e.target.closest("button[data-tab]");
+  if (!b) return;
+  const t = b.dataset.tab;
+  document.querySelectorAll("#tabs button").forEach(x => x.classList.toggle("active", x === b));
+  document.querySelectorAll("main > section").forEach(s => s.classList.remove("active"));
+  document.getElementById("sec-" + t).classList.add("active");
+});
+
+document.getElementById("today-list").addEventListener("click", e => {
+  const b = e.target.closest("[data-toggle]");
+  if (!b) return;
+  const id = b.dataset.toggle;
+  const a = state.activities.find(x => x.id === id);
+  if (a) { toggleDone(a, todayStr()); renderToday(); }
+});
+
+document.getElementById("manage-list").addEventListener("click", e => {
+  const b = e.target.closest("[data-edit]");
+  if (!b) return;
+  const id = b.dataset.edit;
+  const a = state.activities.find(x => x.id === id);
+  if (a) openModal(a);
+});
+
+document.getElementById("fab-add").addEventListener("click", () => openModal(null));
+document.getElementById("btn-add-new").addEventListener("click", () => openModal(null));
+document.getElementById("btn-cancel").addEventListener("click", closeModal);
+document.getElementById("btn-save").addEventListener("click", saveFromForm);
+document.getElementById("btn-delete").addEventListener("click", deleteCurrent);
+document.getElementById("f-freq-type").addEventListener("change", syncFreqFields);
+document.getElementById("btn-add-date").addEventListener("click", () => {
+  const v = document.getElementById("f-date-input").value;
+  if (!v) return;
+  if (!editingDates.includes(v)) editingDates.push(v);
+  document.getElementById("f-date-input").value = "";
+  renderDatesList();
+});
+document.getElementById("dates-list").addEventListener("click", e => {
+  const b = e.target.closest("[data-remove-date]");
+  if (!b) return;
+  editingDates = editingDates.filter(d => d !== b.dataset.removeDate);
+  renderDatesList();
+});
+document.getElementById("modal-bg").addEventListener("click", e => {
+  if (e.target === e.currentTarget) closeModal();  // 背景タップで閉じる
+});
+
+/* ============================================================
+   ユーティリティ
+   ============================================================ */
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function renderAll() {
+  renderToday();
+  renderUpcoming();
+  renderManage();
+}
+
+/* ============================================================
+   初期化
+   ============================================================ */
+(function init() {
+  const d = new Date();
+  document.getElementById("today-label").textContent =
+    `今日 ${d.getMonth()+1}/${d.getDate()} (${DOW_NAMES[d.getDay()]})`;
+  renderAll();
+})();
+</script>
+</body>
+</html>
