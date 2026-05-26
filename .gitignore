@@ -1,3 +1,9 @@
 .DS_Store
 *.swp
 *~
+
+# 写真は machine_photos/ 配下にのみ置く（ルート直下のアップロード事故防止）
+/M*.jpg
+/M*.jpeg
+/M*.png
+/M*.webp
