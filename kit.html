@@ -537,8 +537,9 @@ document.getElementById("btn-reset").addEventListener("click", () => {
   render();
 });
 
-/* strivePD 起動（実験的）: カスタムURLスキームを試行し、開けなければ
-   App Store ページへフォールバック。アプリが開いた場合は離脱を検知して中止。 */
+/* strivePD 起動: カスタムURLスキーム strivepd:// で起動（動作確認済み 2026-06）。
+   未インストール等で開けない場合のみ、1.5秒後に App Store ページへフォールバック。
+   アプリが開いた場合は離脱を検知してフォールバックを中止。 */
 document.getElementById("btn-strivepd").addEventListener("click", () => {
   const fallback = "https://apps.apple.com/app/id1275051699";
   let t = setTimeout(() => { location.href = fallback; }, 1500);
