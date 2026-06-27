@@ -112,6 +112,8 @@
   .step.done { border-left-color: var(--done); }
   .step.important { border-left-color: var(--warn); }
   .step.done.important { border-left-color: var(--done); }
+  .step.rest { border-left-color:#7aa2c2; background:linear-gradient(0deg, rgba(122,162,194,.06), rgba(122,162,194,.06)), var(--card); }
+  .step.rest .step-head { cursor: default; }
 
   .step-head {
     display: flex; align-items: center; gap: 10px;
@@ -200,9 +202,9 @@
     <span class="today" id="today-label">—</span>
   </div>
   <div class="day-tabs" id="day-tabs">
-    <button data-day="月">月 下半身</button>
-    <button data-day="水">水 上半身</button>
-    <button data-day="土">土 軽め全身</button>
+    <button data-day="月">月 下半身＋バイク</button>
+    <button data-day="水">水 上半身＋バイク</button>
+    <button data-day="土">土 回復＋バイク</button>
   </div>
 </header>
 
@@ -227,41 +229,53 @@
    ※ 更新時はこのオブジェクトを直接編集する
    ============================================================ */
 const MENUS = {
-  "月": { name: "下半身重視", steps: [
-    { no:"M05", name:"リカンベントバイク",            note:"5分（ウォームアップ）", kind:"cardio" },
-    { no:"M23", name:"ヒップ・フレックス",              note:"5分",                     kind:"stretch" },
-    { no:"M22", name:"アダクター・エクステンション",      note:"5分",                     kind:"stretch" },
+  "月": { name: "下半身＋高回転バイク（約92分）", steps: [
+    { no:"M23", name:"ヒップ・フレックス",              note:"準備ストレッチ 5分",       kind:"stretch" },
+    { no:"M22", name:"アダクター・エクステンション",      note:"準備ストレッチ 5分",       kind:"stretch" },
+    { no:"",    name:"🛋 休憩・水分",                   note:"3分",                     kind:"rest" },
+    { no:"M05", name:"リカンベントバイク（ウォームアップ）", note:"5分／50rpm",            kind:"cardio" },
+    { no:"M05", name:"リカンベントバイク（高回転数・本体）", note:"30分／80rpm（75〜85rpmを維持）※負荷は軽めにして自力でケイデンス維持。無理は禁物", kind:"cardio", important:true },
+    { no:"M05", name:"リカンベントバイク（クールダウン）",   note:"5分／50rpm",            kind:"cardio" },
+    { no:"",    name:"🛋 休憩・水分",                   note:"5分",                     kind:"rest" },
     { no:"M11", name:"レッグプレス",                    note:"準備2＋メイン2",          kind:"strength", important:true },
     { no:"M08", name:"レッグエクステンション",            note:"準備2＋メイン2（右側+3回）", kind:"strength" },
     { no:"M10", name:"レッグカール",                    note:"準備2＋メイン2（右側+3回）", kind:"strength" },
     { no:"M15", name:"ヒップアブダクター・アダクター",     note:"準備2＋メイン2",          kind:"strength" },
     { no:"M16", name:"バックエクステンション",            note:"準備1＋メイン2",          kind:"strength", prep:1 },
-    { no:"M05", name:"リカンベントバイク",            note:"15分（軽負荷）",          kind:"cardio" },
-    { no:"M23", name:"ヒップ・フレックス（クールダウン）",   note:"3分",                     kind:"stretch" },
+    { no:"",    name:"🛋 休憩",                         note:"2分",                     kind:"rest" },
+    { no:"M23", name:"ヒップ・フレックス（整理）",          note:"クールダウン 5分",         kind:"stretch" },
   ]},
-  "水": { name: "上半身重視＋体幹", steps: [
-    { no:"M05", name:"リカンベントバイク",            note:"5分",                     kind:"cardio" },
-    { no:"M21", name:"ショルダー・エレベイション",        note:"5分",                     kind:"stretch" },
-    { no:"M20", name:"チェスト・エクステンション",        note:"5分",                     kind:"stretch" },
+  "水": { name: "上半身・体幹＋高回転バイク（約92分）", steps: [
+    { no:"M21", name:"ショルダー・エレベイション",        note:"準備ストレッチ 5分",       kind:"stretch" },
+    { no:"M20", name:"チェスト・エクステンション",        note:"準備ストレッチ 5分",       kind:"stretch" },
+    { no:"",    name:"🛋 休憩・水分",                   note:"3分",                     kind:"rest" },
+    { no:"M05", name:"リカンベントバイク（ウォームアップ）", note:"5分／50rpm",            kind:"cardio" },
+    { no:"M05", name:"リカンベントバイク（高回転数・本体）", note:"30分／80rpm（75〜85rpmを維持）※負荷は軽めにして自力でケイデンス維持。無理は禁物", kind:"cardio", important:true },
+    { no:"M05", name:"リカンベントバイク（クールダウン）",   note:"5分／50rpm",            kind:"cardio" },
+    { no:"",    name:"🛋 休憩・水分",                   note:"5分",                     kind:"rest" },
     { no:"M09", name:"チェストプレス",                  note:"準備2＋メイン2（ベンチプレス代替）", kind:"strength", important:true },
     { no:"M12", name:"ラットプルダウン・ロー",            note:"準備2＋メイン2",          kind:"strength" },
     { no:"M13", name:"ショルダープレス",                note:"準備2＋メイン2（ごく軽め）", kind:"strength" },
     { no:"M14", name:"ペックフライ",                    note:"準備1＋メイン2",          kind:"strength", prep:1 },
     { no:"M07", name:"トーソローテーション",            note:"準備1＋メイン2（左右各）",   kind:"strength", prep:1 },
-    { no:"M02", name:"アークトレーナー",                note:"15分（軽負荷）",          kind:"cardio" },
-    { no:"M20", name:"チェスト・エクステンション（クールダウン）", note:"3分",            kind:"stretch" },
+    { no:"",    name:"🛋 休憩",                         note:"2分",                     kind:"rest" },
+    { no:"M20", name:"チェスト・エクステンション（整理）",   note:"クールダウン 5分",         kind:"stretch" },
   ]},
-  "土": { name: "軽め全身・回復寄り", steps: [
-    { no:"M05", name:"リカンベントバイク",            note:"5分",                     kind:"cardio" },
-    { no:"M20", name:"チェスト・エクステンション",        note:"5分",                     kind:"stretch" },
-    { no:"M21", name:"ショルダー・エレベイション",        note:"5分",                     kind:"stretch" },
-    { no:"M22", name:"アダクター・エクステンション",      note:"5分",                     kind:"stretch" },
-    { no:"M23", name:"ヒップ・フレックス",              note:"5分",                     kind:"stretch" },
+  "土": { name: "回復寄り＋高回転バイク（約90分）", steps: [
+    { no:"M20", name:"チェスト・エクステンション",        note:"準備ストレッチ 5分",       kind:"stretch" },
+    { no:"M21", name:"ショルダー・エレベイション",        note:"準備ストレッチ 5分",       kind:"stretch" },
+    { no:"M22", name:"アダクター・エクステンション",      note:"準備ストレッチ 5分",       kind:"stretch" },
+    { no:"M23", name:"ヒップ・フレックス",              note:"準備ストレッチ 5分",       kind:"stretch" },
+    { no:"",    name:"🛋 休憩・水分",                   note:"3分",                     kind:"rest" },
+    { no:"M05", name:"リカンベントバイク（ウォームアップ）", note:"5分／50rpm",            kind:"cardio" },
+    { no:"M05", name:"リカンベントバイク（高回転数・本体）", note:"30分／80rpm（きつければ75rpm寄りで可）※負荷は軽めに、無理は禁物", kind:"cardio", important:true },
+    { no:"M05", name:"リカンベントバイク（クールダウン）",   note:"5分／50rpm",            kind:"cardio" },
+    { no:"",    name:"🛋 休憩・水分",                   note:"5分",                     kind:"rest" },
     { no:"M11", name:"レッグプレス",                    note:"準備1＋メイン1（軽め）",  kind:"strength", prep:1, main:1 },
     { no:"M07", name:"トーソローテーション",            note:"軽め × 左右各8回 × 1セット", kind:"strength", prep:0, main:1 },
     { no:"M16", name:"バックエクステンション",            note:"軽め × 8回 × 1セット",    kind:"strength", prep:0, main:1 },
-    { no:"M05", name:"リカンベントバイク",            note:"20分（音楽聴きながら）",  kind:"cardio" },
-    { no:"M23", name:"ヒップ・フレックス",              note:"5分",                     kind:"stretch" },
+    { no:"",    name:"🛋 休憩",                         note:"2分",                     kind:"rest" },
+    { no:"M23", name:"ヒップ・フレックス（整理・ゆっくり）", note:"クールダウン 8分",         kind:"stretch" },
   ]},
 };
 
@@ -416,6 +430,21 @@ function render() {
     if (isDone) doneCount++;
     const videoUrl = VIDEOS[step.no];
     const hasInputs = step.kind === "strength" && (step.prep ?? 2) + (step.main ?? 2) > 0;
+
+    // 休憩ステップは簡易表示（写真・メモ・動画なし、誤タップ防止でトグル無し）
+    if (step.kind === "rest") {
+      html += `<div class="step rest ${isDone?"done":""}" data-idx="${idx}">`;
+      html += `  <div class="step-head">`;
+      html += `    <div class="num">${idx+1}</div>`;
+      html += `    <div class="body">`;
+      html += `      <div class="title">${step.name}</div>`;
+      html += `      <div class="sub">${step.note}</div>`;
+      html += `    </div>`;
+      html += `    <button class="btn ${isDone?"btn-ghost":"btn-done"}" data-check="${checkKey}">${isDone?"✓ 済":"OK"}</button>`;
+      html += `  </div>`;
+      html += `</div>`;
+      return;
+    }
 
     html += `<div class="step ${isDone?"done":""} ${step.important?"important":""}" data-idx="${idx}">`;
     html += `  <div class="step-head" data-toggle>`;
