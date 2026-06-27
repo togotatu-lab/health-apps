@@ -218,6 +218,7 @@
 <main id="main"></main>
 
 <footer>
+  <button class="btn btn-ghost" id="btn-strivepd">⌚️ strivePD を開く</button>
   <button class="btn btn-ghost" id="btn-reset">今日のチェックをリセット</button>
 </footer>
 
@@ -233,9 +234,9 @@ const MENUS = {
     { no:"M23", name:"ヒップ・フレックス",              note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"M22", name:"アダクター・エクステンション",      note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"",    name:"🛋 休憩・水分",                   note:"3分",                     kind:"rest" },
-    { no:"M05", name:"リカンベントバイク（ウォームアップ）", note:"5分／50rpm",            kind:"cardio" },
+    { no:"M05", name:"リカンベントバイク（ウォームアップ）", note:"5分／50rpm　⌚️ここでApple Watchの『屋内バイク』ワークアウトを開始", kind:"cardio" },
     { no:"M05", name:"リカンベントバイク（高回転数・本体）", note:"30分／80rpm（75〜85rpmを維持）※負荷は軽めにして自力でケイデンス維持。無理は禁物", kind:"cardio", important:true },
-    { no:"M05", name:"リカンベントバイク（クールダウン）",   note:"5分／50rpm",            kind:"cardio" },
+    { no:"M05", name:"リカンベントバイク（クールダウン）",   note:"5分／50rpm　⌚️終了したらワークアウトを保存→strivePDへ自動連携", kind:"cardio" },
     { no:"",    name:"🛋 休憩・水分",                   note:"5分",                     kind:"rest" },
     { no:"M11", name:"レッグプレス",                    note:"準備2＋メイン2",          kind:"strength", important:true },
     { no:"M08", name:"レッグエクステンション",            note:"準備2＋メイン2（右側+3回）", kind:"strength" },
@@ -249,9 +250,9 @@ const MENUS = {
     { no:"M21", name:"ショルダー・エレベイション",        note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"M20", name:"チェスト・エクステンション",        note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"",    name:"🛋 休憩・水分",                   note:"3分",                     kind:"rest" },
-    { no:"M05", name:"リカンベントバイク（ウォームアップ）", note:"5分／50rpm",            kind:"cardio" },
+    { no:"M05", name:"リカンベントバイク（ウォームアップ）", note:"5分／50rpm　⌚️ここでApple Watchの『屋内バイク』ワークアウトを開始", kind:"cardio" },
     { no:"M05", name:"リカンベントバイク（高回転数・本体）", note:"30分／80rpm（75〜85rpmを維持）※負荷は軽めにして自力でケイデンス維持。無理は禁物", kind:"cardio", important:true },
-    { no:"M05", name:"リカンベントバイク（クールダウン）",   note:"5分／50rpm",            kind:"cardio" },
+    { no:"M05", name:"リカンベントバイク（クールダウン）",   note:"5分／50rpm　⌚️終了したらワークアウトを保存→strivePDへ自動連携", kind:"cardio" },
     { no:"",    name:"🛋 休憩・水分",                   note:"5分",                     kind:"rest" },
     { no:"M09", name:"チェストプレス",                  note:"準備2＋メイン2（ベンチプレス代替）", kind:"strength", important:true },
     { no:"M12", name:"ラットプルダウン・ロー",            note:"準備2＋メイン2",          kind:"strength" },
@@ -267,9 +268,9 @@ const MENUS = {
     { no:"M22", name:"アダクター・エクステンション",      note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"M23", name:"ヒップ・フレックス",              note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"",    name:"🛋 休憩・水分",                   note:"3分",                     kind:"rest" },
-    { no:"M05", name:"リカンベントバイク（ウォームアップ）", note:"5分／50rpm",            kind:"cardio" },
+    { no:"M05", name:"リカンベントバイク（ウォームアップ）", note:"5分／50rpm　⌚️ここでApple Watchの『屋内バイク』ワークアウトを開始", kind:"cardio" },
     { no:"M05", name:"リカンベントバイク（高回転数・本体）", note:"30分／80rpm（きつければ75rpm寄りで可）※負荷は軽めに、無理は禁物", kind:"cardio", important:true },
-    { no:"M05", name:"リカンベントバイク（クールダウン）",   note:"5分／50rpm",            kind:"cardio" },
+    { no:"M05", name:"リカンベントバイク（クールダウン）",   note:"5分／50rpm　⌚️終了したらワークアウトを保存→strivePDへ自動連携", kind:"cardio" },
     { no:"",    name:"🛋 休憩・水分",                   note:"5分",                     kind:"rest" },
     { no:"M11", name:"レッグプレス",                    note:"準備1＋メイン1（軽め）",  kind:"strength", prep:1, main:1 },
     { no:"M07", name:"トーソローテーション",            note:"軽め × 左右各8回 × 1セット", kind:"strength", prep:0, main:1 },
@@ -534,6 +535,17 @@ document.getElementById("btn-reset").addEventListener("click", () => {
   if (!confirm("今日のチェック状態をすべて未完了に戻します。よろしいですか？\n（重量・回数の入力は残ります）")) return;
   localStorage.removeItem(CHECK_KEY);
   render();
+});
+
+/* strivePD 起動（実験的）: カスタムURLスキームを試行し、開けなければ
+   App Store ページへフォールバック。アプリが開いた場合は離脱を検知して中止。 */
+document.getElementById("btn-strivepd").addEventListener("click", () => {
+  const fallback = "https://apps.apple.com/app/id1275051699";
+  let t = setTimeout(() => { location.href = fallback; }, 1500);
+  const cancel = () => clearTimeout(t);
+  document.addEventListener("visibilitychange", cancel, { once: true });
+  window.addEventListener("pagehide", cancel, { once: true });
+  location.href = "strivepd://";
 });
 
 /* ============================================================ */
