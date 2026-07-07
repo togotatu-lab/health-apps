@@ -317,11 +317,13 @@ function save() {
 /* 既定の登録項目（初回起動時のみシード） */
 const DEFAULTS = {
   version: 1,
-  seedVersion: 2,
+  seedVersion: 3,
   activities: [
     { id:"d_radio",   name:"ラジオ体操",     time:"朝 6:30", place:"自宅", notes:"第1+第2",   freq:{type:"daily"} },
     { id:"d_stretch", name:"朝ストレッチ",   time:"朝",     place:"自宅", notes:"大振幅ルーチン 10分", freq:{type:"daily"} },
     { id:"d_ball",    name:"ボール運動",     time:"朝",     place:"自宅", notes:"バランス練習",  freq:{type:"daily"} },
+    { id:"w_kit_machine", name:"KIT トレーニング（マシン）", time:"10:00〜11:30", place:"KIT", notes:"リカンベントバイク40分＋マシン筋トレ。メニューの詳細はKITアプリ", freq:{type:"weekly", days:["火","木","土"]} },
+    { id:"w_kit_pool", name:"KIT 水中ウォーキング（プール）", time:"13:00〜13:45", place:"KIT", notes:"メニューの詳細はKITアプリ", freq:{type:"weekly", days:["月","水"]} },
     { id:"w_pt",      name:"菊野病院 リハビリ", time:"15:00〜17:00", place:"菊野病院", notes:"PT・OT・ST。後半に疲れやすければセラピストに伝える", freq:{type:"weekly", days:["金"]} },
     { id:"s_piano",   name:"ピアノレッスン（先生）", time:"19:00〜19:40", place:"柳ピアノ教室", notes:"月3回ペース。日付は先生から告知されたものを追加。レッスン日はStrivePDにアクティビティ記録（演奏はジスキネジアと誤検出されやすい）", freq:{type:"dates", dates:[]} },
     { id:"s_seikotsu",name:"すんくじら整骨院", time:"9:00〜10:00", place:"すんくじら整骨院", notes:"月1回。予約日を追加", freq:{type:"dates", dates:[]} },
@@ -350,6 +352,43 @@ if ((state.seedVersion || 1) < 2) {
     if (!piano.place) piano.place = "柳ピアノ教室";
   }
   state.seedVersion = 2;
+  save();
+}
+
+/* v3 (2026-07-07): ユーザー登録のKIT項目の表記ゆれ修正＋（マシン）/（プール）の区別を付記
+   - 名前中の kitt / kit を KIT に統一
+   - 毎週型は曜日から判定: 火木土→（マシン）、月水→（プール）、両方含む1件は2件に分割 */
+if ((state.seedVersion || 1) < 3) {
+  const MACHINE_DAYS = ["火","木","土"], POOL_DAYS = ["月","水"];
+  const inserts = [];
+  for (const a of state.activities) {
+    if (a.place && /kit/i.test(a.place)) a.place = a.place.replace(/kit+t*/gi, "KIT");
+    if (!/kit/i.test(a.name || "")) continue;
+    a.name = a.name.replace(/kit+t*/gi, "KIT");
+    if (/（マシン）|（プール）|\(マシン\)|\(プール\)/.test(a.name)) continue;
+    const days = (a.freq && a.freq.type === "weekly" && a.freq.days) || [];
+    const hasM = days.some(d => MACHINE_DAYS.includes(d));
+    const hasP = days.some(d => POOL_DAYS.includes(d));
+    if (hasM && hasP) {
+      const pool = Object.assign({}, a, {
+        id: a.id + "_pool",
+        name: a.name + "（プール）",
+        time: "13:00〜13:45",
+        freq: { type: "weekly", days: days.filter(d => POOL_DAYS.includes(d)) },
+      });
+      a.name += "（マシン）";
+      a.freq = { type: "weekly", days: days.filter(d => MACHINE_DAYS.includes(d)) };
+      inserts.push({ after: a, item: pool });
+    } else if (hasM) {
+      a.name += "（マシン）";
+    } else if (hasP) {
+      a.name += "（プール）";
+    }
+  }
+  for (const ins of inserts) {
+    state.activities.splice(state.activities.indexOf(ins.after) + 1, 0, ins.item);
+  }
+  state.seedVersion = 3;
   save();
 }
 
