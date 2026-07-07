@@ -49,7 +49,7 @@
   .today { font-size: 13px; opacity: .85; }
   .day-tabs { display: flex; gap: 6px; margin-top: 10px; }
   .day-tabs button {
-    flex: 1; padding: 10px 0; font-size: 16px; font-weight: 700;
+    flex: 1; padding: 9px 0; font-size: 13px; font-weight: 700; white-space: nowrap;
     background: rgba(255,255,255,0.15); color: var(--accent-ink);
     border: 1px solid rgba(255,255,255,0.3); border-radius: 8px;
     cursor: pointer;
@@ -202,9 +202,11 @@
     <span class="today" id="today-label">—</span>
   </div>
   <div class="day-tabs" id="day-tabs">
-    <button data-day="月">月 下半身＋バイク</button>
-    <button data-day="水">水 上半身＋バイク</button>
-    <button data-day="土">土 回復＋バイク</button>
+    <button data-day="月">月 水中</button>
+    <button data-day="火">火 下半身</button>
+    <button data-day="水">水 水中</button>
+    <button data-day="木">木 上半身</button>
+    <button data-day="土">土 回復</button>
   </div>
 </header>
 
@@ -229,8 +231,23 @@
    メニューデータ
    ※ 更新時はこのオブジェクトを直接編集する
    ============================================================ */
+const WATER_STEPS = [
+  { no:"", name:"シャワー・水慣れ",                note:"5分／かけ湯→胸〜みぞおちまで入水。プールサイドは手すりを使う", kind:"stretch" },
+  { no:"", name:"ゆっくり前歩き（ウォームアップ）",  note:"5分／会話ができるペース　⌚️Apple Watchで『その他』ワークアウト開始＋水没ロックON", kind:"cardio" },
+  { no:"", name:"大股歩行＋大きく腕振り",           note:"7分／動作を「大きく」矯正する主目的パート。強度は心拍でなく自覚（楽〜ややきつい）で", kind:"cardio", important:true },
+  { no:"", name:"後ろ歩き",                        note:"4分／壁やコースロープの近くで", kind:"cardio" },
+  { no:"", name:"横歩き（サイドステップ）",          note:"4分／左右均等に", kind:"cardio" },
+  { no:"", name:"方向転換・8の字歩き",              note:"4分／すくみ足対策。ゆっくり確実に", kind:"cardio", important:true },
+  { no:"", name:"もも上げ歩行",                    note:"5分", kind:"cardio" },
+  { no:"", name:"壁につかまり片脚立ち・かかと上げ",   note:"5分／片脚立ち 左右各30秒×2、かかと上げ15回×2", kind:"strength", prep:0, main:0 },
+  { no:"", name:"クールダウン（ゆっくり歩き）",       note:"5分　⌚️ワークアウト終了を忘れずに", kind:"cardio" },
+  { no:"", name:"🚿 上がる・着替え",                note:"上がるときはゆっくり（温水＋降圧薬の立ちくらみ注意）。水分補給", kind:"rest" },
+];
+
 const MENUS = {
-  "月": { name: "下半身＋高回転バイク（約92分）", steps: [
+  "月": { name: "水中ウォーキング（13:00〜・約45分）", steps: WATER_STEPS },
+  "水": { name: "水中ウォーキング（13:00〜・約45分）", steps: WATER_STEPS },
+  "火": { name: "下半身＋高回転バイク（10:00〜・約92分）", steps: [
     { no:"M23", name:"ヒップ・フレックス",              note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"M22", name:"アダクター・エクステンション",      note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"",    name:"🛋 休憩・水分",                   note:"3分",                     kind:"rest" },
@@ -246,7 +263,7 @@ const MENUS = {
     { no:"",    name:"🛋 休憩",                         note:"2分",                     kind:"rest" },
     { no:"M23", name:"ヒップ・フレックス（整理）",          note:"クールダウン 5分",         kind:"stretch" },
   ]},
-  "水": { name: "上半身・体幹＋高回転バイク（約92分）", steps: [
+  "木": { name: "上半身・体幹＋高回転バイク（10:00〜・約92分）", steps: [
     { no:"M21", name:"ショルダー・エレベイション",        note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"M20", name:"チェスト・エクステンション",        note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"",    name:"🛋 休憩・水分",                   note:"3分",                     kind:"rest" },
@@ -262,7 +279,7 @@ const MENUS = {
     { no:"",    name:"🛋 休憩",                         note:"2分",                     kind:"rest" },
     { no:"M20", name:"チェスト・エクステンション（整理）",   note:"クールダウン 5分",         kind:"stretch" },
   ]},
-  "土": { name: "回復寄り＋高回転バイク（約90分）", steps: [
+  "土": { name: "回復寄り＋高回転バイク（10:00〜・約90分）", steps: [
     { no:"M20", name:"チェスト・エクステンション",        note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"M21", name:"ショルダー・エレベイション",        note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"M22", name:"アダクター・エクステンション",      note:"準備ストレッチ 5分",       kind:"stretch" },
@@ -310,18 +327,16 @@ const PHOTO_DIR = "machine_photos";
 
 /* ============================================================ */
 
-const TRAINING_DAYS = ["月","水","土"];
+const TRAINING_DAYS = ["月","火","水","木","土"];
 const DOW_NAMES = ["日","月","火","水","木","金","土"];
 const REST_NOTES = {
-  "火": "今日は休養日。散歩20分でリズム歩行（朝の大振幅ルーチンを忘れずに）",
-  "木": "ピアノ自主練 20分＋創作活動の日",
-  "金": "菊野病院 PT 15:10〜16:30",
-  "日": "回復日。20分のフルルーチン＋入浴ST＋骨盤底筋",
+  "金": "菊野病院 リハビリ 15:00〜17:00（PT・OT・ST）。後半に疲れやすければセラピストに伝える",
+  "日": "完全休息日。20分のフルルーチン＋入浴ST＋骨盤底筋",
 };
 
 /* 訓練日でも上部に小さく出したいリマインド */
 const DAY_NOTES = {
-  "月": "🎹 今夜 19:00〜19:40 ピアノレッスン（先生）",
+  "月": "🎹 レッスン日（月3回）は今夜 19:00〜19:40 ピアノ → StrivePDにアクティビティ記録（誤検出対策）。月1回は朝9:00 すんくじら整骨院",
 };
 
 /* ローカルストレージ ----------------------------------------- */
@@ -408,7 +423,7 @@ function render() {
     main.innerHTML = `<div class="rest-day">
       <h2>${currentDay}曜は休養日</h2>
       <p>${REST_NOTES[currentDay] || ""}</p>
-      <p class="small">上のタブで 月／水／土 のメニューを表示できます</p>
+      <p class="small">上のタブで各曜日のメニューを表示できます</p>
     </div>`;
     dayName.textContent = `${currentDay}曜日`;
     progress.textContent = "";
@@ -451,15 +466,17 @@ function render() {
     html += `  <div class="step-head" data-toggle>`;
     html += `    <div class="num">${idx+1}</div>`;
     html += `    <div class="body">`;
-    html += `      <div class="title">${step.no} ${step.name}${step.important?' <span class="mid">★最重要</span>':''}</div>`;
+    html += `      <div class="title">${step.no ? step.no + " " : ""}${step.name}${step.important?' <span class="mid">★最重要</span>':''}</div>`;
     html += `      <div class="sub">${step.note}</div>`;
     html += `    </div>`;
     html += `    <div class="toggle">▾</div>`;
     html += `  </div>`;
     html += `  <div class="step-body">`;
-    html += `    <div class="photo-slot" data-photo="${step.no}">`;
-    html += `      <span>📷 写真未設定（${PHOTO_DIR}/${step.no}.jpg を置くと表示）</span>`;
-    html += `    </div>`;
+    if (step.no) {
+      html += `    <div class="photo-slot" data-photo="${step.no}">`;
+      html += `      <span>📷 写真未設定（${PHOTO_DIR}/${step.no}.jpg を置くと表示）</span>`;
+      html += `    </div>`;
+    }
     const memoVal = getField(step.no, idx, "memo");
     html += `    <div class="memo-box">`;
     html += `      <div class="memo-label"><span>📝 メモ（目標・体調・気づきなど自由に）</span></div>`;
@@ -570,7 +587,7 @@ document.getElementById("btn-strivepd").addEventListener("click", () => {
   } else {
     const note = REST_NOTES[dow] || "休養日";
     status.innerHTML = `<span class="lbl">今日 (${dow}) は休養日：</span>${note}` +
-      `<div style="margin-top:4px;font-size:12px;opacity:.85;">下のタブで 月／水／土 のメニューをいつでも閲覧・計画できます</div>`;
+      `<div style="margin-top:4px;font-size:12px;opacity:.85;">下のタブで各曜日のメニューをいつでも閲覧・計画できます</div>`;
   }
 
   // 今日がメニュー曜日ならその曜日、そうでなければ最も近い次のメニュー曜日

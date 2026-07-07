@@ -317,12 +317,13 @@ function save() {
 /* 既定の登録項目（初回起動時のみシード） */
 const DEFAULTS = {
   version: 1,
+  seedVersion: 2,
   activities: [
     { id:"d_radio",   name:"ラジオ体操",     time:"朝 6:30", place:"自宅", notes:"第1+第2",   freq:{type:"daily"} },
     { id:"d_stretch", name:"朝ストレッチ",   time:"朝",     place:"自宅", notes:"大振幅ルーチン 10分", freq:{type:"daily"} },
     { id:"d_ball",    name:"ボール運動",     time:"朝",     place:"自宅", notes:"バランス練習",  freq:{type:"daily"} },
-    { id:"w_pt",      name:"菊野病院 リハビリ", time:"15:10〜16:30", place:"菊野病院", notes:"PT", freq:{type:"weekly", days:["金"]} },
-    { id:"s_piano",   name:"ピアノレッスン（先生）", time:"19:00〜19:40", place:"", notes:"月3回ペース。日付は先生から告知されたものを追加", freq:{type:"dates", dates:[]} },
+    { id:"w_pt",      name:"菊野病院 リハビリ", time:"15:00〜17:00", place:"菊野病院", notes:"PT・OT・ST。後半に疲れやすければセラピストに伝える", freq:{type:"weekly", days:["金"]} },
+    { id:"s_piano",   name:"ピアノレッスン（先生）", time:"19:00〜19:40", place:"柳ピアノ教室", notes:"月3回ペース。日付は先生から告知されたものを追加。レッスン日はStrivePDにアクティビティ記録（演奏はジスキネジアと誤検出されやすい）", freq:{type:"dates", dates:[]} },
     { id:"s_seikotsu",name:"すんくじら整骨院", time:"9:00〜10:00", place:"すんくじら整骨院", notes:"月1回。予約日を追加", freq:{type:"dates", dates:[]} },
   ],
   completions: {}, // {"YYYY-MM-DD": ["id1", "id2"]}
@@ -331,6 +332,26 @@ const DEFAULTS = {
 let state = load() || DEFAULTS;
 // 古いデータからのマイグレーション余地
 if (!state.completions) state.completions = {};
+
+/* 2026-07-20 スケジュール改定を既存データへ反映（端末ごとに1回だけ実行）
+   - 菊野病院: 金 15:00〜17:00（PT・OT・ST）へ拡大
+   - ピアノ: StrivePD記録のリマインドを追記
+   ユーザーが編集済みの他項目・完了履歴には触れない */
+if ((state.seedVersion || 1) < 2) {
+  const pt = state.activities.find(a => a.id === "w_pt");
+  if (pt) {
+    pt.time = "15:00〜17:00";
+    pt.notes = "PT・OT・ST。後半に疲れやすければセラピストに伝える";
+  }
+  const piano = state.activities.find(a => a.id === "s_piano");
+  if (piano && !(piano.notes || "").includes("StrivePD")) {
+    piano.notes = (piano.notes ? piano.notes + "。" : "") +
+      "レッスン日はStrivePDにアクティビティ記録（演奏はジスキネジアと誤検出されやすい）";
+    if (!piano.place) piano.place = "柳ピアノ教室";
+  }
+  state.seedVersion = 2;
+  save();
+}
 
 /* 7日より古い完了履歴は削減（容量節約） */
 (function prune(){
