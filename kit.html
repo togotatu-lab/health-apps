@@ -172,6 +172,13 @@
     resize: vertical; box-sizing: border-box;
   }
   .memo-box textarea:focus { outline: 2px solid var(--accent); }
+  .memo-box .memo-ref {
+    font-size: 12.5px; line-height: 1.55; color: #5b4400;
+    background: #fff8e1; border-radius: 8px; padding: 6px 9px; margin: 4px 0 6px;
+  }
+  @media (prefers-color-scheme: dark) {
+    .memo-box .memo-ref { background: #3a2f10; color: #f0d77a; }
+  }
 
   .action-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   .btn {
@@ -324,6 +331,27 @@ const VIDEOS = {
 
 /* 写真ファイルの所在（同階層 machine_photos/ に Mxx.jpg 等を置けば表示） */
 const PHOTO_DIR = "machine_photos";
+
+/* （参考）負荷の初期設定目安（2026-07-09、原則3・4から算出した探り値。実績で較正する） */
+const REF_LOAD = {
+  M11: "準備①20kg → ②25kg → メイン30〜40kg×8〜12回。膝は伸ばし切らない（ロックアウト禁止）",
+  M08: "準備①10kg → ②10〜15kg → メイン15〜20kg×8〜12回（右側+3回）",
+  M10: "準備①10kg → ②10kg → メイン10〜15kg×8〜12回（右側+3回）",
+  M15: "準備①10kg → ②10〜15kg → メイン15〜20kg×8〜12回",
+  M16: "準備15kg×8回 → メイン20〜25kg×8〜12回。腰に違和感が出たら即中止",
+  M09: "準備①10kg → ②10〜15kg → メイン15〜20kg×8〜12回",
+  M12: "準備①10kg → ②10〜15kg → メイン15〜20kg×8〜12回",
+  M13: "準備 最軽量×8回 → メイン5〜10kg×8〜10回（ごく軽め厳守）",
+  M14: "準備10kg×8回 → メイン10〜15kg×8〜12回（重さより可動域優先）",
+  M07: "準備10kg×8回 → メイン10〜15kg×左右各8回（ひねりの可動域優先）",
+};
+/* 土曜（回復日）は軽め設定で上書き */
+const REF_LOAD_SAT = {
+  M11: "土曜は軽め: 準備20kg×8回 → メイン25〜30kg×8回（各1セットのみ）",
+  M07: "土曜は軽め: 10kg×左右各8回×1セットのみ",
+  M16: "土曜は軽め: 15kg×8回×1セットのみ",
+};
+const REF_RULE = "12回楽に上がる→次回1段階増／6回以下→減量";
 
 /* ============================================================ */
 
@@ -480,6 +508,10 @@ function render() {
     const memoVal = getField(step.no, idx, "memo");
     html += `    <div class="memo-box">`;
     html += `      <div class="memo-label"><span>📝 メモ（目標・体調・気づきなど自由に）</span></div>`;
+    const refText = step.kind === "strength" ? ((currentDay === "土" ? REF_LOAD_SAT[step.no] : REF_LOAD[step.no]) || null) : null;
+    if (refText) {
+      html += `      <div class="memo-ref">（参考）${refText}<br>※${REF_RULE}</div>`;
+    }
     html += `      <textarea rows="10" placeholder="例：今日の目標／体調／使った重量の感触／次回への申し送り…" data-no="${step.no}" data-idx="${idx}" data-field="memo">${escapeAttr(memoVal)}</textarea>`;
     html += `    </div>`;
     if (hasInputs) html += buildSetsGrid(step, idx);
