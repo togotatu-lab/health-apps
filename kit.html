@@ -252,9 +252,9 @@ const WATER_STEPS = [
 ];
 
 const MENUS = {
-  "月": { name: "水中ウォーキング（13:00〜・約45分）", steps: WATER_STEPS },
-  "水": { name: "水中ウォーキング（13:00〜・約45分）", steps: WATER_STEPS },
-  "火": { name: "下半身＋高回転バイク（10:00〜・約92分）", steps: [
+  "月": { name: "水中ウォーキング（13:30〜・約45分）", steps: WATER_STEPS },
+  "水": { name: "水中ウォーキング（13:30〜・約45分）", steps: WATER_STEPS },
+  "火": { name: "下半身＋高回転バイク（9:30〜・約92分）", steps: [
     { no:"M23", name:"ヒップ・フレックス",              note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"M22", name:"アダクター・エクステンション",      note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"",    name:"🛋 休憩・水分",                   note:"3分",                     kind:"rest" },
@@ -270,7 +270,7 @@ const MENUS = {
     { no:"",    name:"🛋 休憩",                         note:"2分",                     kind:"rest" },
     { no:"M23", name:"ヒップ・フレックス（整理）",          note:"クールダウン 5分",         kind:"stretch" },
   ]},
-  "木": { name: "上半身・体幹＋高回転バイク（10:00〜・約92分）", steps: [
+  "木": { name: "上半身・体幹＋高回転バイク（9:30〜・約92分）", steps: [
     { no:"M21", name:"ショルダー・エレベイション",        note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"M20", name:"チェスト・エクステンション",        note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"",    name:"🛋 休憩・水分",                   note:"3分",                     kind:"rest" },
@@ -286,7 +286,7 @@ const MENUS = {
     { no:"",    name:"🛋 休憩",                         note:"2分",                     kind:"rest" },
     { no:"M20", name:"チェスト・エクステンション（整理）",   note:"クールダウン 5分",         kind:"stretch" },
   ]},
-  "土": { name: "回復寄り＋高回転バイク（10:00〜・約90分）", steps: [
+  "土": { name: "回復寄り＋高回転バイク（9:30〜・約90分）", steps: [
     { no:"M20", name:"チェスト・エクステンション",        note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"M21", name:"ショルダー・エレベイション",        note:"準備ストレッチ 5分",       kind:"stretch" },
     { no:"M22", name:"アダクター・エクステンション",      note:"準備ストレッチ 5分",       kind:"stretch" },
@@ -358,7 +358,7 @@ const REF_RULE = "12回楽に上がる→次回1段階増／6回以下→減量"
 const TRAINING_DAYS = ["月","火","水","木","土"];
 const DOW_NAMES = ["日","月","火","水","木","金","土"];
 const REST_NOTES = {
-  "金": "菊野病院 リハビリ 15:00〜17:00（PT・OT・ST）。後半に疲れやすければセラピストに伝える",
+  "金": "菊野病院 リハビリ 15:00〜16:45（PT 15:00〜15:40・PT 16:00〜16:20・ST 16:25〜16:45 ※STは第1・第3金曜は休み）。後半に疲れやすければセラピストに伝える",
   "日": "完全休息日。20分のフルルーチン＋入浴ST＋骨盤底筋",
 };
 
