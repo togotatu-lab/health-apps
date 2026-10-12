@@ -317,12 +317,12 @@ function save() {
 /* 既定の登録項目（初回起動時のみシード） */
 const DEFAULTS = {
   version: 1,
-  seedVersion: 6,
+  seedVersion: 7,
   activities: [
     { id:"d_radio",   name:"太極拳",         time:"朝 6:30", place:"自宅", notes:"",          freq:{type:"daily"} },
     { id:"d_stretch", name:"朝ストレッチ",   time:"朝",     place:"自宅", notes:"大振幅ルーチン 10分", freq:{type:"daily"} },
     { id:"d_ball",    name:"ボール運動",     time:"朝",     place:"自宅", notes:"バランス練習",  freq:{type:"daily"} },
-    { id:"w_kit_machine", name:"KIT トレーニング（マシン）", time:"9:30〜11:30", place:"KIT", notes:"リカンベントバイク40分＋マシン筋トレ。メニューの詳細はKITアプリ", freq:{type:"weekly", days:["火"]} },
+    { id:"w_kit_machine", name:"KIT トレーニング（マシン）", time:"13:30〜15:30", place:"KIT", notes:"リカンベントバイク40分＋マシン筋トレ。通院日（8週に1回）は午前9:30〜11:30。メニューの詳細はKITアプリ", freq:{type:"weekly", days:["火"]} },
     { id:"w_kit_machine_pm", name:"KIT トレーニング（マシン）", time:"13:30〜15:30", place:"KIT", notes:"リカンベントバイク40分＋マシン筋トレ。メニューの詳細はKITアプリ", freq:{type:"weekly", days:["木","土"]} },
     { id:"w_kit_pool", name:"KIT 水中ウォーキング（プール）", time:"13:30〜15:00", place:"KIT", notes:"メニューの詳細はKITアプリ", freq:{type:"weekly", days:["月","水"]} },
     { id:"w_pt",      name:"菊野病院 リハビリ", time:"15:00〜16:45", place:"菊野病院", notes:"PT 15:00〜15:40・PT 16:00〜16:20・ST 16:25〜16:45（STは第1・第3金曜は休み）。後半に疲れやすければセラピストに伝える", freq:{type:"weekly", days:["金"]} },
@@ -445,6 +445,19 @@ if ((state.seedVersion || 1) < 6) {
     state.activities.splice(state.activities.indexOf(ins.after) + 1, 0, ins.item);
   }
   state.seedVersion = 6;
+  save();
+}
+
+/* v7 (2026-10-13): 火曜のKIT（マシン）も午後 13:30〜15:30 へ。通院日は午前 */
+if ((state.seedVersion || 1) < 7) {
+  for (const a of state.activities) {
+    const nm = a.name || "";
+    if (!(/KIT/.test(nm) && /（マシン）/.test(nm))) continue;
+    if (!(a.freq && a.freq.type === "weekly" && (a.freq.days || []).includes("火"))) continue;
+    a.time = "13:30〜15:30";
+    if (!/通院日/.test(a.notes || "")) a.notes = "通院日（8週に1回）は午前9:30〜11:30。" + (a.notes || "");
+  }
+  state.seedVersion = 7;
   save();
 }
 
