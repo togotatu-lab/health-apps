@@ -231,7 +231,7 @@
   <div class="modal" id="modal">
     <h2 id="modal-title">新しいメニュー</h2>
 
-    <label>名前 <span class="small">（例：ラジオ体操、ピアノレッスン）</span></label>
+    <label>名前 <span class="small">（例：太極拳、ピアノレッスン）</span></label>
     <input type="text" id="f-name" placeholder="メニュー名">
 
     <label>時間帯 <span class="small">（例：朝 6:30、19:00〜19:40）</span></label>
@@ -317,9 +317,9 @@ function save() {
 /* 既定の登録項目（初回起動時のみシード） */
 const DEFAULTS = {
   version: 1,
-  seedVersion: 4,
+  seedVersion: 5,
   activities: [
-    { id:"d_radio",   name:"ラジオ体操",     time:"朝 6:30", place:"自宅", notes:"第1+第2",   freq:{type:"daily"} },
+    { id:"d_radio",   name:"太極拳",         time:"朝 6:30", place:"自宅", notes:"",          freq:{type:"daily"} },
     { id:"d_stretch", name:"朝ストレッチ",   time:"朝",     place:"自宅", notes:"大振幅ルーチン 10分", freq:{type:"daily"} },
     { id:"d_ball",    name:"ボール運動",     time:"朝",     place:"自宅", notes:"バランス練習",  freq:{type:"daily"} },
     { id:"w_kit_machine", name:"KIT トレーニング（マシン）", time:"9:30〜11:30", place:"KIT", notes:"リカンベントバイク40分＋マシン筋トレ。メニューの詳細はKITアプリ", freq:{type:"weekly", days:["火","木","土"]} },
@@ -407,6 +407,18 @@ if ((state.seedVersion || 1) < 4) {
     pt.notes = "PT 15:00〜15:40・PT 16:00〜16:20・ST 16:25〜16:45（STは第1・第3金曜は休み）。後半に疲れやすければセラピストに伝える";
   }
   state.seedVersion = 4;
+  save();
+}
+
+/* v5 (2026-10-13): 毎朝のラジオ体操をやめて太極拳に置き換え（完了履歴は保持） */
+if ((state.seedVersion || 1) < 5) {
+  for (const a of state.activities) {
+    if (a.id === "d_radio" || /ラジオ体操/.test(a.name || "")) {
+      a.name = "太極拳";
+      if ((a.notes || "") === "第1+第2") a.notes = "";
+    }
+  }
+  state.seedVersion = 5;
   save();
 }
 
