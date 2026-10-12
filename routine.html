@@ -317,12 +317,13 @@ function save() {
 /* 既定の登録項目（初回起動時のみシード） */
 const DEFAULTS = {
   version: 1,
-  seedVersion: 5,
+  seedVersion: 6,
   activities: [
     { id:"d_radio",   name:"太極拳",         time:"朝 6:30", place:"自宅", notes:"",          freq:{type:"daily"} },
     { id:"d_stretch", name:"朝ストレッチ",   time:"朝",     place:"自宅", notes:"大振幅ルーチン 10分", freq:{type:"daily"} },
     { id:"d_ball",    name:"ボール運動",     time:"朝",     place:"自宅", notes:"バランス練習",  freq:{type:"daily"} },
-    { id:"w_kit_machine", name:"KIT トレーニング（マシン）", time:"9:30〜11:30", place:"KIT", notes:"リカンベントバイク40分＋マシン筋トレ。メニューの詳細はKITアプリ", freq:{type:"weekly", days:["火","木","土"]} },
+    { id:"w_kit_machine", name:"KIT トレーニング（マシン）", time:"9:30〜11:30", place:"KIT", notes:"リカンベントバイク40分＋マシン筋トレ。メニューの詳細はKITアプリ", freq:{type:"weekly", days:["火"]} },
+    { id:"w_kit_machine_pm", name:"KIT トレーニング（マシン）", time:"13:30〜15:30", place:"KIT", notes:"リカンベントバイク40分＋マシン筋トレ。メニューの詳細はKITアプリ", freq:{type:"weekly", days:["木","土"]} },
     { id:"w_kit_pool", name:"KIT 水中ウォーキング（プール）", time:"13:30〜15:00", place:"KIT", notes:"メニューの詳細はKITアプリ", freq:{type:"weekly", days:["月","水"]} },
     { id:"w_pt",      name:"菊野病院 リハビリ", time:"15:00〜16:45", place:"菊野病院", notes:"PT 15:00〜15:40・PT 16:00〜16:20・ST 16:25〜16:45（STは第1・第3金曜は休み）。後半に疲れやすければセラピストに伝える", freq:{type:"weekly", days:["金"]} },
     { id:"s_piano",   name:"ピアノレッスン（先生）", time:"19:00〜19:40", place:"柳ピアノ教室", notes:"月3回ペース。日付は先生から告知されたものを追加。レッスン日はStrivePDにアクティビティ記録（演奏はジスキネジアと誤検出されやすい）", freq:{type:"dates", dates:[]} },
@@ -419,6 +420,31 @@ if ((state.seedVersion || 1) < 5) {
     }
   }
   state.seedVersion = 5;
+  save();
+}
+
+/* v6 (2026-10-13): 木・土のKIT（マシン）を午後 13:30〜15:30 へ移動。火は午前 9:30〜11:30 のまま */
+if ((state.seedVersion || 1) < 6) {
+  const PM_DAYS = ["木","土"];
+  const inserts = [];
+  for (const a of state.activities) {
+    const nm = a.name || "";
+    if (!(/KIT/.test(nm) && /（マシン）/.test(nm))) continue;
+    if (!(a.freq && a.freq.type === "weekly")) continue;
+    const days = a.freq.days || [];
+    const pm = days.filter(d => PM_DAYS.includes(d));
+    const am = days.filter(d => !PM_DAYS.includes(d));
+    if (pm.length === 0) continue;
+    if (am.length === 0) { a.time = "13:30〜15:30"; continue; }
+    a.freq = { type: "weekly", days: am };
+    inserts.push({ after: a, item: Object.assign({}, a, {
+      id: a.id + "_pm", time: "13:30〜15:30", freq: { type: "weekly", days: pm } }) });
+  }
+  for (const ins of inserts) {
+    if (state.activities.some(x => x.id === ins.item.id)) continue;
+    state.activities.splice(state.activities.indexOf(ins.after) + 1, 0, ins.item);
+  }
+  state.seedVersion = 6;
   save();
 }
 
